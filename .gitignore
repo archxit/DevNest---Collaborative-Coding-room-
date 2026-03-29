@@ -41,3 +41,9 @@ vite.config.js.timestamp-*
 # Cache
 .cache/
 .parcel-cache/
+
+node_modules/
+.env
+devnest-backend/node_modules/
+devnest-backend/.env
+dist/
