@@ -1,74 +1,209 @@
-# DevNest Backend
+# ⚡ DevNest Backend — Real-Time Collaborative Engine
 
-Node + Express + MongoDB backend for the DevNest collaborative coding platform.
+> Multi-user code collaboration backend with live sync, role control, and persistent versioning.
 
-## Prerequisites
+---
 
-- Node.js v18+
-- MongoDB running locally (`mongod`) **or** a free MongoDB Atlas cluster
+## 🧠 What This Actually Does
 
-## Setup
+DevNest backend is not just CRUD APIs — it’s a **state synchronization engine** for collaborative coding.
 
-```bash
-# 1. Install dependencies
-npm install
+* Maintains shared code state across multiple clients
+* Handles real-time updates via WebSockets
+* Enforces access control (Owner / Editor / Viewer)
+* Persists code + version history in MongoDB
 
-# 2. Create your .env file
-cp .env.example .env
-# Edit .env and set your MONGO_URI and JWT_SECRET
+---
 
-# 3. Start development server (auto-restarts on file change)
-npm run dev
+## ⚙️ System Architecture
 
-# 4. Confirm it's alive
-curl http://localhost:5000/api/health
+```id="l4t8xk"
+Client (React + Monaco)
+        ↓
+REST API (Auth, Rooms, Versions)
+        ↓
+Socket.io Server (Real-time sync layer)
+        ↓
+MongoDB (Users, Rooms, Code Snapshots)
 ```
 
-## API Reference
+### Key Separation:
+
+* **REST → persistence**
+* **WebSocket → real-time updates**
+
+---
+
+## 🔥 Core Capabilities
+
+### 🔐 Authentication
+
+* JWT-based auth
+* Middleware-protected routes
+* Stateless session handling
+
+---
+
+### 🏠 Room System
+
+* Create / Join rooms
+* Role-based permissions:
+
+  * Owner → full control
+  * Editor → edit code
+  * Viewer → read-only
+
+---
+
+### ⚡ Real-Time Sync (Socket.io)
+
+```id="4f8lqv"
+User types →
+emit("code-change") →
+server broadcasts →
+all clients update instantly
+```
+
+* Room-based socket channels
+* Low-latency broadcasting
+* Handles multi-user editing
+
+---
+
+### 💾 Code Persistence
+
+* Autosave via REST (`PATCH /code`)
+* Version snapshots stored separately
+* Time-based history tracking
+
+---
+
+### 🧠 Version History
+
+* Snapshot-based system
+* Restore previous states
+* Tracks user + timestamp
+
+---
+
+## 📡 API Surface
 
 ### Auth
-| Method | Endpoint | Body | Description |
-|--------|----------|------|-------------|
-| POST | `/api/auth/register` | `{ name, email, password }` | Create account → returns JWT |
-| POST | `/api/auth/login` | `{ email, password }` | Login → returns JWT |
 
-### Rooms *(all require `Authorization: Bearer <token>`)*
-| Method | Endpoint | Body | Description |
-|--------|----------|------|-------------|
-| POST | `/api/rooms/create` | `{ name, language? }` | Create room |
-| POST | `/api/rooms/join` | `{ roomId }` | Join by room ID |
-| GET | `/api/rooms/my-rooms` | — | List your rooms (Dashboard) |
-| GET | `/api/rooms/:roomId` | — | Room details + current code |
-| PATCH | `/api/rooms/:roomId/code` | `{ code, language? }` | Autosave code |
+* `POST /api/auth/register`
+* `POST /api/auth/login`
 
-### Versions *(all require `Authorization: Bearer <token>`)*
-| Method | Endpoint | Body | Description |
-|--------|----------|------|-------------|
-| POST | `/api/versions/save` | `{ roomId, code }` | Save snapshot |
-| GET | `/api/versions/:roomId` | — | Get history list |
+---
 
-## Folder Structure
+### Rooms
 
+* `POST /api/rooms/create`
+* `POST /api/rooms/join`
+* `GET /api/rooms/my-rooms`
+* `GET /api/rooms/:roomId`
+* `PATCH /api/rooms/:roomId/code`
+
+---
+
+### Versions
+
+* `POST /api/versions/save`
+* `GET /api/versions/:roomId`
+
+---
+
+## 🔌 Socket Events (REAL CORE)
+
+### Client → Server
+
+```id="n8w8rx"
+join-room        { roomId }
+code-change      { roomId, code }
+cursor-move      { roomId, position }
 ```
+
+---
+
+### Server → Client
+
+```id="wq7pxz"
+code-update      { code }
+user-joined      { user }
+cursor-update    { userId, position }
+```
+
+---
+
+## 📂 Project Structure
+
+```id="4jocqk"
 devnest-backend/
-├── server.js           ← Entry point
-├── .env                ← Secrets (never commit)
-├── config/
-│   └── db.js           ← MongoDB connection
+├── server.js
+├── config/db.js
 ├── models/
-│   ├── User.js         ← User schema + password hashing
-│   ├── Room.js         ← Room schema with member roles
-│   └── Version.js      ← Code snapshot schema
+├── routes/
 ├── middleware/
-│   └── auth.js         ← JWT verification
-└── routes/
-    ├── authRoutes.js   ← Register + Login
-    ├── roomRoutes.js   ← Room CRUD
-    └── versionRoutes.js ← Version history
 ```
 
-## Future Scope (Phase 2)
-- Cursor presence / user awareness
-- Operational Transform for conflict resolution
-- Refresh token rotation
-- Deployment (Railway / Render)
+---
+
+## 🚀 Setup
+
+```id="rkt3xf"
+npm install
+copy .env.example .env
+npm run dev
+```
+
+---
+
+## 🌍 Environment Variables
+
+```id="j9u6h7"
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/devnest
+JWT_SECRET=your_secret
+```
+
+---
+
+## 🧪 Health Check
+
+```id="5pcr0y"
+GET /api/health
+```
+
+---
+
+## ⚠️ Design Trade-offs
+
+* Uses **full document sync** (not OT/CRDT yet)
+* Last-write-wins strategy
+* No offline sync
+
+---
+
+## 🚀 What Makes This Strong
+
+* Separates real-time + persistence layers cleanly
+* Uses room-based socket architecture
+* Demonstrates scalable system thinking
+* Not just CRUD — actual collaborative system
+
+---
+
+## 🔮 Next Iteration
+
+* Operational Transform / CRDT
+* Differential updates instead of full state
+* Rate limiting + throttling
+* Horizontal scaling with Redis adapter
+
+---
+
+## 👨‍💻 Author
+
+Nehal Verma
+B.Tech CCE — Backend + Systems Engineering Focus
+
+---
