@@ -256,13 +256,6 @@ JWT_SECRET=your_secret_key
 
 ---
 
-## 👨‍💻 Author
-
-Nehal Verma
-B.Tech CCE — Full Stack & Systems Engineering
-
----
-
 ## 📄 License
 
 For academic and educational use.
